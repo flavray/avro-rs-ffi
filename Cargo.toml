@@ -6,6 +6,9 @@ authors = ["Flavien Raiynaud <flavien.raynaud@gmail.com>", "Antonio Verardi <ant
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+snappy = ["avro/snappy"]
+
 [profile.release]
 lto = true
 
@@ -13,4 +16,4 @@ lto = true
 failure = "0.1.1"
 failure_derive = "0.1.1"
 serde = "^1.0"
-avro = { git = "https://github.com/flavray/avro-rs", branch = "dev" }
+avro = { git = "https://github.com/flavray/avro-rs", branch = "dev"     }

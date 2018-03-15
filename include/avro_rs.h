@@ -8,6 +8,15 @@
 #include <stdbool.h>
 
 /*
+ * Replicates avro::Codec enum so we can use a C-compatible representation
+ */
+typedef enum {
+  AVRO_CODEC_NULL,
+  AVRO_CODEC_DEFLATE,
+  AVRO_CODEC_SNAPPY,
+} AvroCodec;
+
+/*
  * C-style error codes
  */
 enum AvroErrorCode {
@@ -16,6 +25,10 @@ enum AvroErrorCode {
   AVRO_ERROR_CODE_UNKNOWN = 3,
 };
 typedef uint32_t AvroErrorCode;
+
+typedef struct AvroSchema AvroSchema;
+
+typedef struct AvroWriter AvroWriter;
 
 /*
  * Represents a byte array.
@@ -82,6 +95,13 @@ AvroStr avro_err_get_last_message(void);
  */
 void avro_init(void);
 
+void avro_schema_free(AvroSchema *schema);
+
+/*
+ * Create an avro schema from its JSON definition.
+ */
+AvroSchema *avro_schema_from_json(const AvroStr *json);
+
 /*
  * Frees a avro str.
  *
@@ -93,10 +113,15 @@ void avro_str_free(AvroStr *s);
 /*
  * Creates a avro str from a c string.
  *
- * This sets the string to owned.  In case it's not owned you either have
+ * This sets the string to owned. In case it's not owned you either have
  * to make sure you are not freeing the memory or you need to set the
  * owned flag to false.
  */
 AvroStr avro_str_from_c_str(const char *s);
+
+/*
+ * Create an avro writer given an avro schema, an avro byte array used as buffer and an avro codec.
+ */
+AvroWriter *avro_writer_new(const AvroSchema *schema, AvroByteArray *buffer, AvroCodec codec);
 
 #endif /* AVRO_RS_BINDINGS_H */

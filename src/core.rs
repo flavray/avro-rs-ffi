@@ -133,7 +133,7 @@ impl AvroStr {
 ffi_fn! {
     /// Creates a avro str from a c string.
     ///
-    /// This sets the string to owned.  In case it's not owned you either have
+    /// This sets the string to owned. In case it's not owned you either have
     /// to make sure you are not freeing the memory or you need to set the
     /// owned flag to false.
     unsafe fn avro_str_from_c_str(s: *const c_char) -> Result<AvroStr> {
@@ -206,6 +206,10 @@ impl AvroByteArray {
 
     pub fn as_slice(&self) -> &[u8] {
         unsafe {slice::from_raw_parts(self.data as *const _, self.len) }
+    }
+
+    pub unsafe fn to_vec_u8(&mut self) -> Vec<u8> {
+        Vec::from_raw_parts(self.data as *mut _, self.len, self.len)
     }
 }
 
