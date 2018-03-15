@@ -1,0 +1,15 @@
+target/
+docs/
+.ropeproject/
+**/*.rs.bk
+.tox
+.docker_container_id
+*.swp
+*.swo
+.cache
+*.pyc
+__pycache__/
+virtualenv_run/
+.idea/
+*.iml
+.DS_Store
