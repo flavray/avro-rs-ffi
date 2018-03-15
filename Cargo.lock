@@ -21,6 +21,8 @@ name = "avro-rs-ffi"
 version = "0.0.1"
 dependencies = [
  "avro 0.1.0 (git+https://github.com/flavray/avro-rs?branch=dev)",
+ "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure_derive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.32 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
