@@ -1,3 +1,6 @@
+extern crate avro;
+extern crate serde;
+
 #[cfg(test)]
 mod tests {
     #[test]
