@@ -1,0 +1,6 @@
+[package]
+name = "avro-rs-ffi"
+version = "0.0.1"
+authors = ["Flavien Raiynaud <flavien.raynaud@gmail.com>", "Antonio Verardi <antonio.uccio.verardi@gmail.com>"]
+
+[dependencies]
