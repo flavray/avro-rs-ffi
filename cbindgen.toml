@@ -4,3 +4,6 @@ language = "C"
 
 [parse]
 expand = ["avro-rs-ffi"]
+
+[enum]
+rename_variants = "QualifiedScreamingSnakeCase"
