@@ -1,0 +1,6 @@
+header = "/* c bindings to the avro-rs library */"
+include_guard = "AVRO_RS_BINDINGS_H"
+language = "C"
+
+[parse]
+expand = ["avro-rs-ffi"]
