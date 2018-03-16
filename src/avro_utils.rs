@@ -142,9 +142,12 @@ fn from_record(rschema: &RecordSchema, value: PickleValue) -> Result<Value, Erro
                 .map(|field| {
                     let value = match fields.remove(&HashableValue::String(field.name.clone())) {
                         Some(value) => avro_value_from_pickle(&field.schema, value),
-                        None => match field.default {
-                            Some(ref value) => Ok(value.clone().avro()),
-                            None => Err(err_msg(format!("missing field {} in record", field.name))),
+                        None => match fields.remove(&HashableValue::Bytes(field.name.clone().into_bytes())) {
+                            Some(value) => avro_value_from_pickle(&field.schema, value),
+                            None => match field.default {
+                                Some(ref value) => Ok(value.clone().avro()),
+                                None => Err(err_msg(format!("missing field {} in record", field.name))),
+                            }
                         }
                     };
 
@@ -194,7 +197,7 @@ mod tests {
         "#).unwrap();
 
         let mut record = BTreeMap::new();
-        record.insert(HashableValue::String("field".to_owned()), PickleValue::String("foo".to_owned()));
+        record.insert(HashableValue::Bytes("field".as_bytes().to_owned()), PickleValue::String("foo".to_owned()));
 
         let avro_value = avro_value_from_pickle(&schema, PickleValue::Dict(record));
         if let Ok(Value::Record(fields)) = avro_value {
