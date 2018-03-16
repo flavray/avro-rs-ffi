@@ -18,7 +18,6 @@ pub enum AvroErrorCode {
     Unknown = 3,
 }
 
-
 /// Initializes the library
 #[no_mangle]
 pub unsafe extern "C" fn avro_init() {
@@ -61,7 +60,7 @@ pub unsafe extern "C" fn avro_err_get_last_message() -> AvroStr {
 pub unsafe extern "C" fn avro_err_get_backtrace() -> AvroStr {
     LAST_ERROR.with(|e| {
         if let Some(ref error) = *e.borrow() {
-            let mut out =  format!("stacktrace: {}", error.backtrace()).to_owned();
+            let mut out = format!("stacktrace: {}", error.backtrace()).to_owned();
             AvroStr::from_string(out)
         } else {
             Default::default()
@@ -129,7 +128,6 @@ impl AvroStr {
     }
 }
 
-
 ffi_fn! {
     /// Creates a avro str from a c string.
     ///
@@ -159,7 +157,8 @@ pub unsafe extern "C" fn avro_str_free(s: *mut AvroStr) {
 
 /// Represents a byte array.
 #[repr(C)]
-pub struct AvroByteArray  {
+#[derive(Debug)]
+pub struct AvroByteArray {
     pub data: *mut c_uchar,
     pub len: usize,
     pub owned: bool,
@@ -205,14 +204,13 @@ impl AvroByteArray {
     }
 
     pub fn as_slice(&self) -> &[u8] {
-        unsafe {slice::from_raw_parts(self.data as *const _, self.len) }
+        unsafe { slice::from_raw_parts(self.data as *const _, self.len) }
     }
 
     pub unsafe fn to_vec_u8(&mut self) -> Vec<u8> {
         Vec::from_raw_parts(self.data as *mut _, self.len, self.len)
     }
 }
-
 
 ffi_fn! {
     /// Creates a avro byte array from a c string.

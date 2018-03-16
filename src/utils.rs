@@ -4,8 +4,7 @@ use std::mem;
 use std::panic;
 use std::thread;
 use std::cell::RefCell;
-use failure::{Error, err_msg};
-
+use failure::{err_msg, Error};
 
 thread_local! {
     pub static LAST_ERROR: RefCell<Option<Error>> = RefCell::new(None);

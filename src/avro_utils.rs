@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 
-use failure::{Error, err_msg};
+use failure::{err_msg, Error};
 
 use avro::schema::{RecordSchema, Schema};
 use avro::types::{ToAvro, Value};
@@ -79,7 +79,9 @@ fn from_bytes(value: PickleValue) -> Result<Value, Error> {
 fn from_string(value: PickleValue) -> Result<Value, Error> {
     match value {
         PickleValue::String(s) => Ok(Value::String(s)),
-        PickleValue::Bytes(bytes) => String::from_utf8(bytes).map_err(|_| err_msg("not a valid utf-8 string")).map(Value::String),
+        PickleValue::Bytes(bytes) => String::from_utf8(bytes)
+            .map_err(|_| err_msg("not a valid utf-8 string"))
+            .map(Value::String),
         _ => Err(err_msg("not a string")),
     }
 }
@@ -92,38 +94,38 @@ fn from_fixed(size: usize, value: PickleValue) -> Result<Value, Error> {
             } else {
                 Err(err_msg("fixed size does not match"))
             }
-        },
+        }
         _ => Err(err_msg("not a fixed")),
     }
 }
 
 fn from_array(schema: &Schema, value: PickleValue) -> Result<Value, Error> {
     match value {
-        PickleValue::List(values) | PickleValue::Tuple(values) => Ok(Value::Array(
-            values.into_iter()
-                .map(|value| avro_value_from_pickle(schema, value))
-                .collect::<Result<Vec<_>, _>>()?)),
-        PickleValue::Set(values) | PickleValue::FrozenSet(values) => Ok(Value::Array(
-            values.into_iter()
-                .map(|value| avro_value_from_pickle(schema, value.into_value()))
-                .collect::<Result<Vec<_>, _>>()?)),
+        PickleValue::List(values) | PickleValue::Tuple(values) => Ok(Value::Array(values
+            .into_iter()
+            .map(|value| avro_value_from_pickle(schema, value))
+            .collect::<Result<Vec<_>, _>>()?)),
+        PickleValue::Set(values) | PickleValue::FrozenSet(values) => Ok(Value::Array(values
+            .into_iter()
+            .map(|value| avro_value_from_pickle(schema, value.into_value()))
+            .collect::<Result<Vec<_>, _>>()?)),
         _ => Err(err_msg("not an array")),
     }
 }
 
 fn from_map(schema: &Schema, value: PickleValue) -> Result<Value, Error> {
     match value {
-        PickleValue::Dict(values) => Ok(Value::Map(
-            values.into_iter()
-                .map(|(key, value)| {
-                    if let HashableValue::String(key) = key {
-                        let value = avro_value_from_pickle(schema, value)?;
-                        Ok((key, value))
-                    } else {
-                        Err(err_msg("map key should be string"))
-                    }
-                })
-                .collect::<Result<HashMap<_, _>, _>>()?)),
+        PickleValue::Dict(values) => Ok(Value::Map(values
+            .into_iter()
+            .map(|(key, value)| {
+                if let HashableValue::String(key) = key {
+                    let value = avro_value_from_pickle(schema, value)?;
+                    Ok((key, value))
+                } else {
+                    Err(err_msg("map key should be string"))
+                }
+            })
+            .collect::<Result<HashMap<_, _>, _>>()?)),
         _ => Err(err_msg("not a map")),
     }
 }
@@ -131,30 +133,35 @@ fn from_map(schema: &Schema, value: PickleValue) -> Result<Value, Error> {
 fn from_union(schema: &Schema, value: PickleValue) -> Result<Value, Error> {
     match value {
         PickleValue::None => Ok(Value::Union(None)),
-        value => Ok(Value::Union(Some(Box::new(avro_value_from_pickle(schema, value)?)))),
+        value => Ok(Value::Union(Some(Box::new(avro_value_from_pickle(
+            schema,
+            value,
+        )?)))),
     }
 }
 
 fn from_record(rschema: &RecordSchema, value: PickleValue) -> Result<Value, Error> {
     match value {
-        PickleValue::Dict(mut fields) => {
-            Ok(Value::Record(rschema.fields.iter()
-                .map(|field| {
-                    let value = match fields.remove(&HashableValue::String(field.name.clone())) {
+        PickleValue::Dict(mut fields) => Ok(Value::Record(rschema
+            .fields
+            .iter()
+            .map(|field| {
+                let value = match fields.remove(&HashableValue::String(field.name.clone())) {
+                    Some(value) => avro_value_from_pickle(&field.schema, value),
+                    None => match fields
+                        .remove(&HashableValue::Bytes(field.name.clone().into_bytes()))
+                    {
                         Some(value) => avro_value_from_pickle(&field.schema, value),
-                        None => match fields.remove(&HashableValue::Bytes(field.name.clone().into_bytes())) {
-                            Some(value) => avro_value_from_pickle(&field.schema, value),
-                            None => match field.default {
-                                Some(ref value) => Ok(value.clone().avro()),
-                                None => Err(err_msg(format!("missing field {} in record", field.name))),
-                            }
-                        }
-                    };
+                        None => match field.default {
+                            Some(ref value) => Ok(value.clone().avro()),
+                            None => Err(err_msg(format!("missing field {} in record", field.name))),
+                        },
+                    },
+                };
 
-                    value.map(|value| (field.name.clone(), value))
-                })
-                .collect::<Result<Vec<_>, _>>()?))
-        },
+                value.map(|value| (field.name.clone(), value))
+            })
+            .collect::<Result<Vec<_>, _>>()?)),
         _ => Err(err_msg("not a record")),
     }
 }
@@ -169,12 +176,27 @@ pub fn pickle_value_from_avro(value: Value) -> PickleValue {
         Value::Double(x) => PickleValue::F64(x),
         Value::Bytes(bytes) | Value::Fixed(_, bytes) => PickleValue::Bytes(bytes),
         Value::String(s) => PickleValue::String(s),
-        Value::Array(values) => PickleValue::List(values.into_iter().map(|value| pickle_value_from_avro(value)).collect::<>()),
-        Value::Map(values) => PickleValue::Dict(values.into_iter().map(|(key, value)| (HashableValue::String(key), pickle_value_from_avro(value))).collect::<BTreeMap<_, _>>()),
+        Value::Array(values) => PickleValue::List(
+            values
+                .into_iter()
+                .map(|value| pickle_value_from_avro(value))
+                .collect(),
+        ),
+        Value::Map(values) => PickleValue::Dict(
+            values
+                .into_iter()
+                .map(|(key, value)| (HashableValue::String(key), pickle_value_from_avro(value)))
+                .collect::<BTreeMap<_, _>>(),
+        ),
         Value::Union(None) => PickleValue::None,
         Value::Union(Some(value)) => pickle_value_from_avro(*value),
-        Value::Record(fields) => PickleValue::Dict(fields.into_iter().map(|(key, value)| (HashableValue::String(key), pickle_value_from_avro(value))).collect::<BTreeMap<_, _>>()),
-        Value::Enum(_) => PickleValue::None,  // not yet supported
+        Value::Record(fields) => PickleValue::Dict(
+            fields
+                .into_iter()
+                .map(|(key, value)| (HashableValue::String(key), pickle_value_from_avro(value)))
+                .collect::<BTreeMap<_, _>>(),
+        ),
+        Value::Enum(_) => PickleValue::None, // not yet supported
     }
 }
 
@@ -197,7 +219,10 @@ mod tests {
         "#).unwrap();
 
         let mut record = BTreeMap::new();
-        record.insert(HashableValue::Bytes("field".as_bytes().to_owned()), PickleValue::String("foo".to_owned()));
+        record.insert(
+            HashableValue::Bytes("field".as_bytes().to_owned()),
+            PickleValue::String("foo".to_owned()),
+        );
 
         let avro_value = avro_value_from_pickle(&schema, PickleValue::Dict(record));
         if let Ok(Value::Record(fields)) = avro_value {
