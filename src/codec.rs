@@ -5,7 +5,8 @@ use avro::Codec;
 pub enum AvroCodec {
     Null,
     Deflate,
-    #[cfg(feature = "snappy")] Snappy,
+    #[cfg(feature = "snappy")]
+    Snappy,
 }
 
 impl AvroCodec {
@@ -13,8 +14,8 @@ impl AvroCodec {
         match *self {
             AvroCodec::Null => Codec::Null,
             AvroCodec::Deflate => Codec::Deflate,
-            #[cfg(feature = "snappy")] AvroCodec::Snappy => Codec::Snappy,
+            #[cfg(feature = "snappy")]
+            AvroCodec::Snappy => Codec::Snappy,
         }
     }
 }
-

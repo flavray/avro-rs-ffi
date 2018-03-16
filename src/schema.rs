@@ -1,9 +1,7 @@
 use avro::schema::Schema;
 use core::AvroStr;
 
-
 pub struct AvroSchema;
-
 
 ffi_fn! {
     /// Create an avro schema from its JSON definition.
@@ -13,11 +11,10 @@ ffi_fn! {
     }
 }
 
-
 #[no_mangle]
+/// Free an avro schema.
 pub unsafe extern "C" fn avro_schema_free(schema: *mut AvroSchema) {
     if !schema.is_null() {
-        let schema = schema as *mut Schema;
-        Box::from_raw(schema);
+        Box::from_raw(schema as *mut Schema);
     }
 }

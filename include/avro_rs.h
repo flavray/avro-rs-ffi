@@ -26,6 +26,8 @@ enum AvroErrorCode {
 };
 typedef uint32_t AvroErrorCode;
 
+typedef struct AvroReader AvroReader;
+
 typedef struct AvroSchema AvroSchema;
 
 typedef struct AvroWriter AvroWriter;
@@ -95,6 +97,24 @@ AvroStr avro_err_get_last_message(void);
  */
 void avro_init(void);
 
+/*
+ * Free an avro reader. Does NOT free the buffer the reader reads from.
+ */
+void avro_reader_free(AvroReader *reader);
+
+/*
+ * Create an avro writer given an avro schema, an avro byte array used as buffer and an avro codec.
+ */
+AvroReader *avro_reader_new(const AvroByteArray *buffer, const AvroSchema *schema);
+
+/*
+ * Read the next chunk of data out of an avro reader.
+ */
+AvroByteArray avro_reader_read_next(AvroReader *reader);
+
+/*
+ * Free an avro schema.
+ */
 void avro_schema_free(AvroSchema *schema);
 
 /*
@@ -120,8 +140,24 @@ void avro_str_free(AvroStr *s);
 AvroStr avro_str_from_c_str(const char *s);
 
 /*
+ * Append a pickled avro value to an avro writer. Writing is not necessarily happening here.
+ * Call `avro_writer_flush` to force an actual write.
+ */
+uintptr_t avro_writer_append(AvroWriter *writer, const AvroByteArray *value);
+
+/*
+ * Flush an avro writer.
+ */
+uintptr_t avro_writer_flush(AvroWriter *writer);
+
+/*
+ * Consume an avro writer and return the avro serialized data.
+ */
+AvroByteArray avro_writer_into_data(AvroWriter *writer);
+
+/*
  * Create an avro writer given an avro schema, an avro byte array used as buffer and an avro codec.
  */
-AvroWriter *avro_writer_new(const AvroSchema *schema, AvroByteArray *buffer, AvroCodec codec);
+AvroWriter *avro_writer_new(const AvroSchema *schema, AvroCodec codec);
 
 #endif /* AVRO_RS_BINDINGS_H */
