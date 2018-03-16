@@ -17,3 +17,4 @@ failure = "0.1.1"
 failure_derive = "0.1.1"
 serde = "^1.0"
 avro = { git = "https://github.com/flavray/avro-rs", branch = "dev"     }
+serde-pickle = "^0.4"

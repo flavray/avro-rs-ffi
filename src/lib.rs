@@ -1,6 +1,7 @@
 extern crate failure;
 extern crate avro;
 extern crate serde;
+extern crate serde_pickle;
 
 #[macro_use] mod utils;
 
@@ -9,6 +10,7 @@ mod schema;
 mod writer;
 mod reader;
 mod codec;
+mod avro_utils;
 
 pub use core::*;
 pub use schema::*;
