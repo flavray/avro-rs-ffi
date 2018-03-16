@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use failure::{Error, err_msg};
 
@@ -153,6 +153,25 @@ fn from_record(rschema: &RecordSchema, value: PickleValue) -> Result<Value, Erro
                 .collect::<Result<Vec<_>, _>>()?))
         },
         _ => Err(err_msg("not a record")),
+    }
+}
+
+pub fn pickle_value_from_avro(value: Value) -> PickleValue {
+    match value {
+        Value::Null => PickleValue::None,
+        Value::Boolean(b) => PickleValue::Bool(b),
+        Value::Int(n) => PickleValue::I64(n as i64),
+        Value::Long(n) => PickleValue::I64(n),
+        Value::Float(x) => PickleValue::F64(x as f64),
+        Value::Double(x) => PickleValue::F64(x),
+        Value::Bytes(bytes) | Value::Fixed(_, bytes) => PickleValue::Bytes(bytes),
+        Value::String(s) => PickleValue::String(s),
+        Value::Array(values) => PickleValue::List(values.into_iter().map(|value| pickle_value_from_avro(value)).collect::<>()),
+        Value::Map(values) => PickleValue::Dict(values.into_iter().map(|(key, value)| (HashableValue::String(key), pickle_value_from_avro(value))).collect::<BTreeMap<_, _>>()),
+        Value::Union(None) => PickleValue::None,
+        Value::Union(Some(value)) => pickle_value_from_avro(*value),
+        Value::Record(fields) => PickleValue::Dict(fields.into_iter().map(|(key, value)| (HashableValue::String(key), pickle_value_from_avro(value))).collect::<BTreeMap<_, _>>()),
+        Value::Enum(_) => PickleValue::None,  // not yet supported
     }
 }
 
