@@ -78,6 +78,7 @@ pub unsafe extern "C" fn avro_err_clear() {
 
 /// Represents a string.
 #[repr(C)]
+#[derive(Debug)]
 pub struct AvroStr {
     pub data: *mut c_char,
     pub len: usize,
@@ -125,6 +126,10 @@ impl AvroStr {
 
     pub fn as_str(&self) -> &str {
         unsafe { str::from_utf8_unchecked(slice::from_raw_parts(self.data as *const _, self.len)) }
+    }
+
+    pub fn into_string(self) -> String {
+        unsafe { String::from_utf8_unchecked(Vec::from_raw_parts(self.data as *mut _, self.len, self.len)) }
     }
 }
 

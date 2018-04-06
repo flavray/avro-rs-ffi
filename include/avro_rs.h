@@ -26,6 +26,8 @@ enum AvroErrorCode {
 };
 typedef uint32_t AvroErrorCode;
 
+typedef struct AvroPValue AvroPValue;
+
 typedef struct AvroReader AvroReader;
 
 typedef struct AvroSchema AvroSchema;
@@ -97,6 +99,8 @@ AvroStr avro_err_get_last_message(void);
  */
 void avro_init(void);
 
+void avro_map_put(AvroPValue *map, AvroStr key, AvroPValue *value);
+
 /*
  * Free an avro reader. Does NOT free the buffer the reader reads from.
  */
@@ -139,11 +143,29 @@ void avro_str_free(AvroStr *s);
  */
 AvroStr avro_str_from_c_str(const char *s);
 
+AvroPValue *avro_value_boolean(int32_t b);
+
+AvroPValue *avro_value_double(double x);
+
+AvroPValue *avro_value_long(int64_t n);
+
+AvroPValue *avro_value_map(uintptr_t capacity);
+
+AvroPValue *avro_value_null(void);
+
+AvroPValue *avro_value_string(AvroStr s);
+
 /*
  * Append a pickled avro value to an avro writer. Writing is not necessarily happening here.
  * Call `avro_writer_flush` to force an actual write.
  */
 uintptr_t avro_writer_append(AvroWriter *writer, const AvroByteArray *value);
+
+/*
+ * Append a pickled avro value to an avro writer. Writing is not necessarily happening here.
+ * Call `avro_writer_flush` to force an actual write.
+ */
+uintptr_t avro_writer_append2(AvroWriter *writer, const AvroPValue *value);
 
 /*
  * Flush an avro writer.
