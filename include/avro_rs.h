@@ -28,7 +28,11 @@ typedef uint32_t AvroErrorCode;
 
 typedef struct AvroReader AvroReader;
 
+typedef struct AvroRecord AvroRecord;
+
 typedef struct AvroSchema AvroSchema;
+
+typedef struct AvroValue AvroValue;
 
 typedef struct AvroWriter AvroWriter;
 
@@ -49,6 +53,8 @@ typedef struct {
   uintptr_t len;
   bool owned;
 } AvroStr;
+
+void avro_array_append(AvroValue *array, AvroValue *value);
 
 /*
  * Frees a avro byte array.
@@ -97,6 +103,8 @@ AvroStr avro_err_get_last_message(void);
  */
 void avro_init(void);
 
+void avro_map_put(AvroValue *map, AvroStr key, AvroValue *value);
+
 /*
  * Free an avro reader. Does NOT free the buffer the reader reads from.
  */
@@ -111,6 +119,19 @@ AvroReader *avro_reader_new(const AvroByteArray *buffer, const AvroSchema *schem
  * Read the next chunk of data out of an avro reader.
  */
 AvroByteArray avro_reader_read_next(AvroReader *reader);
+
+/*
+ * Read the next chunk of data out of an avro reader.
+ */
+AvroValue *avro_reader_read_next2(AvroReader *reader);
+
+void avro_record_free(AvroRecord *r);
+
+AvroRecord *avro_record_new(const AvroSchema *schema);
+
+void avro_record_put(AvroRecord *record, const AvroStr *field, AvroValue *value);
+
+AvroValue *avro_record_to_value(AvroRecord *record);
 
 /*
  * Free an avro schema.
@@ -139,11 +160,45 @@ void avro_str_free(AvroStr *s);
  */
 AvroStr avro_str_from_c_str(const char *s);
 
+AvroValue *avro_value_array_new(uintptr_t capacity);
+
+bool avro_value_boolean_get(const AvroValue *value);
+
+AvroValue *avro_value_boolean_new(int32_t b);
+
+AvroValue *avro_value_bytes_new(AvroByteArray b);
+
+AvroValue *avro_value_double_new(double x);
+
+AvroValue *avro_value_enum_new(int32_t value);
+
+AvroValue *avro_value_fixed_new(uintptr_t len, AvroByteArray b);
+
+void avro_value_free(AvroValue *v);
+
+AvroValue *avro_value_long_new(int64_t n);
+
+AvroValue *avro_value_map_new(uintptr_t capacity);
+
+void avro_value_null_get(const AvroValue *value);
+
+AvroValue *avro_value_null_new(void);
+
+const AvroValue *avro_value_record_get(const AvroValue *record, const AvroStr *field);
+
+AvroStr avro_value_string_get(const AvroValue *value);
+
+AvroValue *avro_value_string_new(AvroStr s);
+
+AvroValue *avro_value_union_new(AvroValue *value);
+
 /*
  * Append a pickled avro value to an avro writer. Writing is not necessarily happening here.
  * Call `avro_writer_flush` to force an actual write.
  */
 uintptr_t avro_writer_append(AvroWriter *writer, const AvroByteArray *value);
+
+uintptr_t avro_writer_append2(AvroWriter *writer, AvroValue *value);
 
 /*
  * Flush an avro writer.

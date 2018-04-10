@@ -6,23 +6,26 @@ extern crate serde_pickle;
 #[macro_use]
 mod utils;
 
-mod core;
-mod schema;
-mod writer;
-mod reader;
-mod codec;
 mod avro_utils;
+mod codec;
+mod core;
+mod reader;
+mod schema;
+mod types;
+mod writer;
 
-pub use core::*;
-pub use schema::*;
 pub use codec::*;
-pub use writer::*;
+pub use core::*;
 pub use reader::*;
+pub use schema::*;
+pub use types::*;
+pub use writer::*;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ffi::CString;
+    use std::ffi::{CStr, CString};
+    use std::ptr;
 
     #[test]
     fn full_test() {
@@ -51,5 +54,51 @@ mod tests {
         }
         unsafe { avro_reader_free(reader) };
         unsafe { avro_schema_free(schema) };
+    }
+
+    #[test]
+    fn full_test2() {
+        unsafe {
+            let json = CString::new(r#"
+        {"namespace": "test", "type": "record", "name": "Test", "fields": [{"type": {"type": "string"}, "name": "field"}]}
+        "#).unwrap();
+            let avro_json = core::avro_str_from_c_str(json.as_ptr());
+            let schema = schema::avro_schema_from_json(&avro_json);
+            assert!(!schema.is_null());
+
+            let writer = writer::avro_writer_new(schema, AvroCodec::Null);
+            assert!(!writer.is_null());
+
+            let field_str = CString::new("field").unwrap();
+            let field = core::avro_str_from_c_str(field_str.as_ptr());
+
+            let foo_str = CString::new("foo").unwrap();
+            let foo = core::avro_str_from_c_str(foo_str.as_ptr());
+            let foo_value = types::avro_value_string_new(foo);
+
+            let record = types::avro_record_new(schema);
+            let _put = types::avro_record_put(record, &field, foo_value);
+            let value = types::avro_record_to_value(record);
+
+            let _done = writer::avro_writer_append2(writer, value);
+            let _flushed = writer::avro_writer_flush(writer);
+            let data = writer::avro_writer_into_data(writer);
+
+            let reader = reader::avro_reader_new(&data, None);
+            let read_value = reader::avro_reader_read_next2(reader);
+            assert!(!read_value.is_null());
+            assert_eq!(reader::avro_reader_read_next2(reader), ptr::null_mut());
+
+            let string_value = types::avro_value_record_get(read_value, &field);
+            let internal_string = types::avro_value_string_get(string_value);
+            assert_eq!(
+                "foo",
+                CStr::from_ptr(internal_string.data).to_str().unwrap()
+            );
+
+            avro_reader_free(reader);
+            avro_schema_free(schema);
+            avro_value_free(read_value);
+        }
     }
 }

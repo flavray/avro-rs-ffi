@@ -1,10 +1,9 @@
+use failure::{err_msg, Error};
+use std::cell::RefCell;
 ///! Shameless plug of https://github.com/getsentry/symbolic/blob/master/cabi/src/utils.rs
-
 use std::mem;
 use std::panic;
 use std::thread;
-use std::cell::RefCell;
-use failure::{err_msg, Error};
 
 thread_local! {
     pub static LAST_ERROR: RefCell<Option<Error>> = RefCell::new(None);
@@ -52,7 +51,7 @@ where
         Ok(Err(err)) => {
             set_last_error(err);
             mem::zeroed()
-        }
+        },
         Err(_) => mem::zeroed(),
     }
 }
@@ -85,3 +84,9 @@ macro_rules! ffi_fn (
         }
     }
 );
+
+macro_rules! ffi_avro_value {
+    ($v:expr) => {
+        Box::into_raw(Box::new($v)) as *mut AvroValue
+    };
+}

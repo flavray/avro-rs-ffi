@@ -1,10 +1,10 @@
-use std::mem;
-use std::ptr;
-use std::str;
-use std::slice;
 use std::ffi::CStr;
-use std::os::raw::{c_char, c_uchar};
 use std::fmt::Write;
+use std::mem;
+use std::os::raw::{c_char, c_uchar};
+use std::ptr;
+use std::slice;
+use std::str;
 
 use utils::{set_panic_hook, LAST_ERROR};
 
@@ -78,6 +78,7 @@ pub unsafe extern "C" fn avro_err_clear() {
 
 /// Represents a string.
 #[repr(C)]
+#[derive(Debug)]
 pub struct AvroStr {
     pub data: *mut c_char,
     pub len: usize,
@@ -125,6 +126,16 @@ impl AvroStr {
 
     pub fn as_str(&self) -> &str {
         unsafe { str::from_utf8_unchecked(slice::from_raw_parts(self.data as *const _, self.len)) }
+    }
+
+    pub fn into_string(self) -> String {
+        unsafe {
+            String::from_utf8_unchecked(Vec::from_raw_parts(
+                self.data as *mut _,
+                self.len,
+                self.len,
+            ))
+        }
     }
 }
 
@@ -207,7 +218,7 @@ impl AvroByteArray {
         unsafe { slice::from_raw_parts(self.data as *const _, self.len) }
     }
 
-    pub unsafe fn to_vec_u8(&mut self) -> Vec<u8> {
+    pub unsafe fn to_vec_u8(self) -> Vec<u8> {
         Vec::from_raw_parts(self.data as *mut _, self.len, self.len)
     }
 }

@@ -1,5 +1,5 @@
 include/avro_rs.h: $(shell find src -type f -name "*.rs")
-	RUSTUP_TOOLCHAIN=nightly cbindgen -c cbindgen.toml . -o $@
+	RUSTUP_TOOLCHAIN=nightly cbindgen -v -c cbindgen.toml . -o $@
 
 .PHONY: build
 build: include/avro_rs.h

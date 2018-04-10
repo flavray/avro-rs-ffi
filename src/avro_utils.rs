@@ -94,7 +94,7 @@ fn from_fixed(size: usize, value: PickleValue) -> Result<Value, Error> {
             } else {
                 Err(err_msg("fixed size does not match"))
             }
-        }
+        },
         _ => Err(err_msg("not a fixed")),
     }
 }
