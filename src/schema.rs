@@ -1,4 +1,4 @@
-use avro::schema::Schema;
+use avro_rs::schema::Schema;
 use core::AvroStr;
 
 pub struct AvroSchema;

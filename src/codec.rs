@@ -1,4 +1,4 @@
-use avro::Codec;
+use avro_rs::Codec;
 
 /// Replicates avro::Codec enum so we can use a C-compatible representation
 #[repr(C)]

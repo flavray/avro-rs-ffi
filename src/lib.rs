@@ -1,4 +1,5 @@
-extern crate avro;
+#![cfg_attr(feature = "cargo-clippy", allow(cast_ptr_alignment))]
+extern crate avro_rs;
 extern crate failure;
 extern crate serde;
 extern crate serde_pickle;
@@ -24,7 +25,9 @@ pub use writer::*;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ffi::{CStr, CString};
+    use serde_pickle::value::Value as PickleValue;
+    use std::collections::HashMap;
+    use std::ffi::CString;
     use std::ptr;
 
     #[test]
@@ -49,7 +52,17 @@ mod tests {
             let value = unsafe { reader::avro_reader_read_next(reader) };
             match value.len {
                 0 => break,
-                _ => println!("{:?}", value),
+                _ => {
+                    let pickle_map = serde_pickle::from_slice::<HashMap<String, PickleValue>>(
+                        value.as_slice(),
+                    ).unwrap();
+                    let pickle_value = pickle_map.get("field").unwrap();
+                    if let PickleValue::String(s) = pickle_value {
+                        assert_eq!("foo", s);
+                    } else {
+                        assert!(false, "the value is not a string");
+                    }
+                },
             }
         }
         unsafe { avro_reader_free(reader) };
@@ -60,8 +73,8 @@ mod tests {
     fn full_test2() {
         unsafe {
             let json = CString::new(r#"
-        {"namespace": "test", "type": "record", "name": "Test", "fields": [{"type": {"type": "string"}, "name": "field"}]}
-        "#).unwrap();
+            {"namespace": "test", "type": "record", "name": "Test", "fields": [{"type": {"type": "string"}, "name": "field"}]}
+            "#).unwrap();
             let avro_json = core::avro_str_from_c_str(json.as_ptr());
             let schema = schema::avro_schema_from_json(&avro_json);
             assert!(!schema.is_null());
@@ -91,10 +104,7 @@ mod tests {
 
             let string_value = types::avro_value_record_get(read_value, &field);
             let internal_string = types::avro_value_string_get(string_value);
-            assert_eq!(
-                "foo",
-                CStr::from_ptr(internal_string.data).to_str().unwrap()
-            );
+            assert_eq!("foo", internal_string.as_str());
 
             avro_reader_free(reader);
             avro_schema_free(schema);

@@ -30,7 +30,7 @@ pub unsafe extern "C" fn avro_init() {
 #[no_mangle]
 pub unsafe extern "C" fn avro_err_get_last_code() -> AvroErrorCode {
     LAST_ERROR.with(|e| {
-        if let Some(_) = *e.borrow() {
+        if (*e).borrow().is_some() {
             AvroErrorCode::Unknown
         } else {
             AvroErrorCode::NoError
@@ -218,7 +218,7 @@ impl AvroByteArray {
         unsafe { slice::from_raw_parts(self.data as *const _, self.len) }
     }
 
-    pub unsafe fn to_vec_u8(self) -> Vec<u8> {
+    pub unsafe fn into_vec_u8(self) -> Vec<u8> {
         Vec::from_raw_parts(self.data as *mut _, self.len, self.len)
     }
 }

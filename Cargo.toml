@@ -7,14 +7,14 @@ authors = ["Flavien Raynaud <flavien.raynaud@gmail.com>", "Antonio Verardi <anto
 crate-type = ["cdylib"]
 
 [features]
-snappy = ["avro/snappy"]
+snappy = ["avro-rs/snappy"]
 
 [profile.release]
 lto = true
 
 [dependencies]
+avro-rs = "^0.4.0"
 failure = "0.1.1"
 failure_derive = "0.1.1"
 serde = "^1.0"
 serde-pickle = "^0.4"
-avro = { git = "https://github.com/flavray/avro-rs", branch = "dev" }

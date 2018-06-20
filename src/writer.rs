@@ -1,6 +1,6 @@
-use avro::schema::Schema;
-use avro::types::Value;
-use avro::writer::Writer;
+use avro_rs::schema::Schema;
+use avro_rs::types::Value;
+use avro_rs::Writer;
 use avro_utils::avro_value_from_pickle;
 use codec::AvroCodec;
 use core::AvroByteArray;
@@ -41,8 +41,7 @@ ffi_fn! {
     unsafe fn avro_writer_append2(writer: *mut AvroWriter, value: *mut AvroValue) -> Result<usize> {
         let writer = &mut *(writer as *mut Writer<Vec<u8>>);
         let value = *(Box::from_raw(value as *mut Value));
-        let value = value.resolve(writer.schema());
-        Ok(writer.append(value?)?)
+        Ok(writer.append(value)?)
     }
 }
 

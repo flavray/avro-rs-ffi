@@ -166,17 +166,35 @@ bool avro_value_boolean_get(const AvroValue *value);
 
 AvroValue *avro_value_boolean_new(int32_t b);
 
+AvroByteArray avro_value_bytes_get(const AvroValue *value);
+
 AvroValue *avro_value_bytes_new(AvroByteArray b);
+
+double avro_value_double_get(const AvroValue *value);
 
 AvroValue *avro_value_double_new(double x);
 
-AvroValue *avro_value_enum_new(int32_t value);
+AvroStr avro_value_enum_get(const AvroValue *value);
+
+AvroValue *avro_value_enum_new(int value_index, AvroStr value_repr);
+
+AvroByteArray avro_value_fixed_get(const AvroValue *value);
 
 AvroValue *avro_value_fixed_new(uintptr_t len, AvroByteArray b);
 
+float avro_value_float_get(const AvroValue *value);
+
+AvroValue *avro_value_float_new(float x);
+
 void avro_value_free(AvroValue *v);
 
-AvroValue *avro_value_long_new(int64_t n);
+int avro_value_int_get(const AvroValue *value);
+
+AvroValue *avro_value_int_new(int n);
+
+long avro_value_long_get(const AvroValue *value);
+
+AvroValue *avro_value_long_new(long n);
 
 AvroValue *avro_value_map_new(uintptr_t capacity);
 

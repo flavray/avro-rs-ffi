@@ -13,3 +13,4 @@ virtualenv_run/
 .idea/
 *.iml
 .DS_Store
+precommit_venv/
