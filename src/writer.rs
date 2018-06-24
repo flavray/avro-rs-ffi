@@ -41,7 +41,8 @@ ffi_fn! {
     unsafe fn avro_writer_append2(writer: *mut AvroWriter, value: *mut AvroValue) -> Result<usize> {
         let writer = &mut *(writer as *mut Writer<Vec<u8>>);
         let value = *(Box::from_raw(value as *mut Value));
-        Ok(writer.append(value)?)
+        let value = value.resolve(writer.schema())?;  // Python's type system is not as strict as Rust's. This `.resolve` allows us to be more laxist
+        Ok(writer.append_value_ref(&value)?)
     }
 }
 
