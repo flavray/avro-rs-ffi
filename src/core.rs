@@ -146,12 +146,14 @@ ffi_fn! {
     /// to make sure you are not freeing the memory or you need to set the
     /// owned flag to false.
     unsafe fn avro_str_from_c_str(s: *const c_char) -> Result<AvroStr> {
-        let s = CStr::from_ptr(s).to_str()?;
-        Ok(AvroStr {
+        let s = CStr::from_ptr(s).to_str()?.to_owned();  // can we not own it?
+        let rv = Ok(AvroStr {
             data: s.as_ptr() as *mut _,
             len: s.len(),
             owned: true,
-        })
+        });
+        mem::forget(s);
+        rv
     }
 }
 
