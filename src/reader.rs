@@ -1,3 +1,4 @@
+use avro_rs::from_avro_datum;
 use avro_rs::schema::Schema;
 use avro_rs::Reader;
 use avro_utils::pickle_value_from_avro;
@@ -54,5 +55,18 @@ ffi_fn! {
         if !reader.is_null() {
             Box::from_raw(reader as *mut Reader<&[u8]>);
         }
+    }
+}
+
+ffi_fn! {
+    /// Reads avro serialized data into a Value
+    unsafe fn avro_from_avro_datum(buffer: *const AvroByteArray, schema: *const AvroSchema) -> Result<AvroByteArray> {
+        let mut reader = (&*buffer).as_slice();
+        let schema = &*(schema as *const Schema);
+        let value = from_avro_datum(schema, &mut reader, None)?;
+        Ok(AvroByteArray::from_vec_u8(value_to_vec(
+            &pickle_value_from_avro(value),
+            false
+        )?))
     }
 }

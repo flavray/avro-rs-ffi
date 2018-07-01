@@ -1,3 +1,4 @@
+use avro_rs::to_avro_datum;
 use avro_rs::schema::Schema;
 use avro_rs::types::Value;
 use avro_rs::Writer;
@@ -59,6 +60,17 @@ ffi_fn! {
     unsafe fn avro_writer_into_data(writer: *mut AvroWriter) -> Result<AvroByteArray> {
         let writer = Box::from_raw(writer as *mut Writer<Vec<u8>>);
         let buf = (*writer).into_inner();
+        Ok(AvroByteArray::from_vec_u8(buf))
+    }
+}
+
+ffi_fn! {
+    /// Write a single avro datum to a buffer and return the avro serialized data.
+    unsafe fn avro_to_avro_datum(schema: *const AvroSchema, value: *mut AvroValue) -> Result<AvroByteArray> {
+        let schema = &*(schema as *const Schema);
+        let value = *(Box::from_raw(value as *mut Value));
+        let value = value.resolve(schema)?;
+        let buf = to_avro_datum(schema, value)?;
         Ok(AvroByteArray::from_vec_u8(buf))
     }
 }

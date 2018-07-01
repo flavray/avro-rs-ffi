@@ -99,6 +99,11 @@ AvroErrorCode avro_err_get_last_code(void);
 AvroStr avro_err_get_last_message(void);
 
 /*
+ * Reads avro serialized data into a Value
+ */
+AvroByteArray avro_from_avro_datum(const AvroByteArray *buffer, const AvroSchema *schema);
+
+/*
  * Initializes the library
  */
 void avro_init(void);
@@ -159,6 +164,11 @@ void avro_str_free(AvroStr *s);
  * owned flag to false.
  */
 AvroStr avro_str_from_c_str(const char *s);
+
+/*
+ * Write a single avro datum to a buffer and return the avro serialized data.
+ */
+AvroByteArray avro_to_avro_datum(const AvroSchema *schema, AvroValue *value);
 
 AvroValue *avro_value_array_new(uintptr_t capacity);
 
